@@ -1,4 +1,6 @@
 company_name,career_url,country,company_type,source_type
-Arbeitnow,https://www.arbeitnow.com/api/job-board-api,Germany,digital,api
-EuroJobs,https://www.eurojobs.com/search-results/?q=project+manager&l=Germany,Germany,generic,generic
-Indeed Germany,https://de.indeed.com/jobs?q=project+manager&l=Deutschland,Germany,generic,generic
+JobStairs Mittelstand,https://www.jobstairs.de/de/unternehmen/jobsimmittelstand,Germany,mittelstand,generic
+Karriere.de Jobs,https://karriere.de/jobs/,Germany,mittelstand,generic
+Mittelstand.JOBS,https://www.mittelstand.jobs,Germany,mittelstand,generic
+Make it in Germany Jobs,https://www.make-it-in-germany.com/en/working-in-germany/job-listings,Germany,sme,generic
+Arbeitnow,https://www.arbeitnow.com,Germany,digital,api
