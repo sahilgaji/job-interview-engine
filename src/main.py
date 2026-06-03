@@ -1,7 +1,6 @@
 import csv
 import hashlib
 from src.storage.db import init_db, connect
-from src.discovery import discover
 from src.ats.router import get_ats_by_name
 from src.matching.keyword_match import match_job
 from src.notify.telegram import send
@@ -40,17 +39,22 @@ def save_and_notify(conn, job):
         )
 
 def process_source(conn, source):
-    ats_name = discover(source)
-    if not ats_name:
-        print(f"{source['company_name']}: ATS not detected, skipping")
+    ats_name = source.get("ats_type", "").strip().lower()
+    api_url = source.get("api_url", "").strip()
+
+    if not ats_name or not api_url:
+        print(f"{source['company_name']}: missing ats_type or api_url, skipping")
         return
+
     ats = get_ats_by_name(ats_name)
     if not ats:
         print(f"{source['company_name']}: no module for {ats_name}, skipping")
         return
+
     try:
         raw_jobs = ats.fetch_jobs(source)
         print(f"{source['company_name']} ({ats_name}): {len(raw_jobs)} jobs fetched")
+        matched = 0
         for raw in raw_jobs:
             try:
                 j = ats.normalize_job(raw, source)
@@ -66,8 +70,10 @@ def process_source(conn, source):
                 j["desc_score"] = desc_score
                 j["final_score"] = final_score
                 save_and_notify(conn, j)
+                matched += 1
             except Exception as e:
-                print(f"  Job error: {e}")
+                print(f"  Job processing error: {e}")
+        print(f"{source['company_name']}: {matched} matches saved")
     except Exception as e:
         print(f"{source['company_name']} fetch error: {e}")
 
