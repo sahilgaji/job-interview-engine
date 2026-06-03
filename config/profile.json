@@ -247,7 +247,14 @@
     "Budapest",
     "Italy",
     "Milan",
-    "Rome"
+    "Rome",
+    "remote",
+    "remote worldwide",
+    "remote global",
+    "remote emea",
+    "remote europe",
+    "worldwide",
+    "global"
   ],
 
   "positive_keywords": [
@@ -319,6 +326,9 @@
   ],
 
   "negative_keywords": [
+    "werkstudent",
+    "werkstudentin",
+    "working student",
     "driver",
     "nurse",
     "chef",
