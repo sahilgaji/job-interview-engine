@@ -6,12 +6,12 @@ Raisin,https://www.raisin.com/careers/,https://job-boards.eu.greenhouse.io/raisi
 GetYourGuide,https://www.getyourguide.careers/open-roles,,,greenhouse
 Omio,https://www.omio.com/corporate/jobs,,,greenhouse
 Staffbase,https://staffbase.com/jobs/all/,,,greenhouse
-Sennder,https://www.sennder.com/open-positions,https://boards-api.greenhouse.io/v1/boards/sennder/jobs?content=true,,greenhouse
-Personio,https://www.personio.com/about-personio/careers/,https://boards-api.greenhouse.io/v1/boards/personio/jobs?content=true,,greenhouse
+Sennder,https://www.sennder.com/open-positions,https://job-boards.eu.greenhouse.io/sennder/jobs?content=true,,greenhouse
+Personio,https://www.personio.com/about-personio/careers/,https://job-boards.eu.greenhouse.io/personio/jobs?content=true,,greenhouse
 Contentful,https://www.contentful.com/careers/,https://boards-api.greenhouse.io/v1/boards/contentful/jobs?content=true,,greenhouse
-Taxfix,https://taxfix.de/en/careers/,https://boards-api.greenhouse.io/v1/boards/taxfix/jobs?content=true,,greenhouse
-About You,https://corporate.about-you.com/en/career,https://boards-api.greenhouse.io/v1/boards/aboutyougroup/jobs?content=true,,greenhouse
-Westwing,https://www.westwing.com/careers/,https://boards-api.greenhouse.io/v1/boards/westwing/jobs?content=true,,greenhouse
+Taxfix,https://taxfix.de/en/careers/,https://job-boards.eu.greenhouse.io/taxfix/jobs?content=true,,greenhouse
+About You,https://corporate.about-you.com/en/career,https://job-boards.eu.greenhouse.io/aboutyougroup/jobs?content=true,,greenhouse
+Westwing,https://www.westwing.com/careers/,https://job-boards.eu.greenhouse.io/westwing/jobs?content=true,,greenhouse
 Usercentrics,https://usercentrics.com/careers/,https://usercentrics-gmbh.jobs.personio.de/xml,,personio
 Statista,https://www.statista.com/jobs/,https://statista-gmbh.jobs.personio.de/xml,,personio
 Flaconi,https://www.flaconi.de/jobs/,https://flaconi.jobs.personio.de/xml,,personio
@@ -20,11 +20,9 @@ DataGuard,https://www.dataguard.de/careers/,https://dataguard.jobs.personio.de/x
 Scalable Capital,https://de.scalable.capital/karriere,https://scalable-capital.jobs.personio.de/xml,,personio
 Haufe Group,https://www.haufe.de/unternehmen/karriere/,https://haufegroup.jobs.personio.de/xml,,personio
 Körber AG,https://www.koerber.com/karriere,https://koerber.jobs.personio.de/xml,,personio
-Ströer,https://www.stroeer.de/karriere/,https://stroeer.jobs.personio.de/xml,,personio
 Mytheresa,https://www.mytheresa.com/de-de/corporate/careers,https://mytheresa.jobs.personio.de/xml,,personio
-HomeToGo,https://www.hometogo.de/careers/,https://hometogo.jobs.personio.de/xml,,personio
-Zooplus,https://www.zooplus.de/magazine/karriere,https://zooplus.jobs.personio.de/xml,,personio
-Idealo,https://www.idealo.de/unternehmen/jobs/,https://idealo.jobs.personio.de/xml,,personio
-Adjust,https://www.adjust.com/company/careers/,https://adjust.jobs.personio.de/xml,,personio
+HomeToGo,https://www.hometogo.de/careers/,https://hometogo-gmbh.jobs.personio.de/xml,,personio
+Zooplus,https://www.zooplus.de/magazine/karriere,https://zooplus-ag.jobs.personio.de/xml,,personio
+Idealo,https://www.idealo.de/unternehmen/jobs/,https://idealo-internet.jobs.personio.de/xml,,personio
+Adjust,https://www.adjust.com/company/careers/,https://adjust-gmbh.jobs.personio.de/xml,,personio
 Aroundhome,https://www.aroundhome.de/jobs/,https://aroundhome.jobs.personio.de/xml,,personio
-Thermondo,https://www.thermondo.de/jobs/,https://thermondo.jobs.personio.de/xml,,personio
