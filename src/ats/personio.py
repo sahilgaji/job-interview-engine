@@ -11,7 +11,12 @@ class PersonioATS(ATSBase):
         return "personio" in t or "jobs.personio.de" in t
 
     def fetch_jobs(self, source):
-        feed = source.get("api_url", "")
+        feed = source.get("api_url", "").strip()
+        if not feed:
+            raise Exception("No api_url provided for Personio")
+        # Safety check — never hit personio.com directly
+        if "jobs.personio.de" not in feed and "personio.de/xml" not in feed:
+            raise Exception(f"Invalid Personio feed URL: {feed}")
         r = requests.get(feed, timeout=30, headers={"User-Agent": "Mozilla/5.0"})
         r.raise_for_status()
         root = ET.fromstring(r.content)
