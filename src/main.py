@@ -60,7 +60,7 @@ def process_source(conn, source):
                 j = ats.normalize_job(raw, source)
                 if not j.get("title") or not j.get("url"):
                     continue
-                keep, title_score, desc_score = match_job(j["title"], j.get("description", ""))
+                keep, title_score, desc_score = match_job(j["title"], j.get("description", ""), j.get("location", ""))
                 if not keep:
                     continue
                 final_score = round(min(1.0, title_score + desc_score), 3)
