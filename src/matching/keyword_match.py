@@ -54,8 +54,10 @@ def match_job(title, description="", location=""):
         return False, 0.0, 0.0
 
     # Title must have at least one genuine signal word
-    title_has_signal = any(s in title_lower for s in STRONG_TITLE_SIGNALS)
-    if not title_has_signal:
+title_has_signal = any(s in title_lower for s in STRONG_TITLE_SIGNALS)
+    # For RSS portal jobs, descriptions are very short so we rely on title only
+    # Still require at least one signal word in title
+    if not title_has_signal and not any(t in title_lower for t in PROFILE["target_titles"]):
         return False, 0.0, 0.0
 
     title_hits = _hits(title, PROFILE["positive_keywords"] + PROFILE["target_titles"])
