@@ -1,0 +1,7 @@
+source_name,source_type,url,priority
+Stellenmarkt IT,rss,https://www.stellenmarkt.de/rss/smrssbf6.xml,1
+Stellenmarkt Management,rss,https://www.stellenmarkt.de/rss/smrssbf7.xml,1
+Stellenmarkt Office,rss,https://www.stellenmarkt.de/rss/smrssbf13.xml,1
+Jobcafe Wirtschaft,rss,https://www.jobcafe.de/feeds/aktuelle-jobs-wirtschaft.xml,1
+Jobcafe IT,rss,https://www.jobcafe.de/feeds/aktuelle-jobs-it.xml,1
+Jobcafe Buero,rss,https://www.jobcafe.de/feeds/aktuelle-jobs-buero.xml,1
