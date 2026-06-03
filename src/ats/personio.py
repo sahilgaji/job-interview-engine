@@ -22,13 +22,16 @@ class PersonioATS(ATSBase):
         t = f"{url} {html}".lower()
         return "personio" in t or "jobs.personio.de" in t
 
-    def fetch_jobs(self, source):
+   def fetch_jobs(self, source):
         feed = source.get("api_url", "").strip()
-        if not feed:
-            raise Exception("No api_url provided for Personio")
-        # Safety check — never hit personio.com directly
-        if "jobs.personio.de" not in feed and "personio.de/xml" not in feed:
-            raise Exception(f"Invalid Personio feed URL: {feed}")
+        if not feed or "jobs.personio.de" not in feed:
+            # Try to discover slug from career page
+            slug = find_personio_slug(source.get("career_url", ""))
+            if slug:
+                feed = f"https://{slug}.jobs.personio.de/xml"
+                print(f"  Auto-discovered Personio slug: {slug}")
+            else:
+                raise Exception(f"No valid Personio feed URL for {source.get('company_name','?')}")
         r = requests.get(feed, timeout=30, headers={"User-Agent": "Mozilla/5.0"})
         r.raise_for_status()
         root = ET.fromstring(r.content)
