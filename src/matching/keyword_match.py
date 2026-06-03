@@ -32,6 +32,9 @@ def is_relevant_location(location):
     if not location:
         return True
     loc = normalize(location)
+    # Always allow anything with "remote" in it regardless of country
+    if "remote" in loc:
+        return True
     return any(normalize(gl) in loc for gl in PROFILE["locations"])
 
 def match_job(title, description="", location=""):
