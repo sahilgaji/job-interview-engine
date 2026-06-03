@@ -1,8 +1,8 @@
+import re
 import requests
 import xml.etree.ElementTree as ET
 from src.ats.base import ATSBase
 
-import re
 
 def find_personio_slug(career_url):
     try:
@@ -14,6 +14,7 @@ def find_personio_slug(career_url):
         pass
     return None
 
+
 class PersonioATS(ATSBase):
     name = "personio"
     public = True
@@ -22,16 +23,19 @@ class PersonioATS(ATSBase):
         t = f"{url} {html}".lower()
         return "personio" in t or "jobs.personio.de" in t
 
-   def fetch_jobs(self, source):
+    def fetch_jobs(self, source):
         feed = source.get("api_url", "").strip()
+
+        # Validate the feed URL — must be a company-specific Personio XML feed
         if not feed or "jobs.personio.de" not in feed:
-            # Try to discover slug from career page
+            # Try to auto-discover slug from career page
             slug = find_personio_slug(source.get("career_url", ""))
             if slug:
                 feed = f"https://{slug}.jobs.personio.de/xml"
                 print(f"  Auto-discovered Personio slug: {slug}")
             else:
-                raise Exception(f"No valid Personio feed URL for {source.get('company_name','?')}")
+                raise Exception(f"No valid Personio feed URL for {source.get('company_name', '?')}")
+
         r = requests.get(feed, timeout=30, headers={"User-Agent": "Mozilla/5.0"})
         r.raise_for_status()
         root = ET.fromstring(r.content)
