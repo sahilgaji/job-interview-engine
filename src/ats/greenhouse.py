@@ -7,12 +7,14 @@ class GreenhouseATS(ATSBase):
 
     def detect(self, url, html):
         t = f"{url} {html}".lower()
-        return "greenhouse" in t or "boards.greenhouse.io" in t or "job-boards.eu.greenhouse.io" in t
+        return "greenhouse" in t or "boards-api.greenhouse.io" in t or "boards.greenhouse.io" in t
 
     def fetch_jobs(self, source):
-        slug = source.get("slug", "")
-        base = source.get("api_url", f"https://job-boards.eu.greenhouse.io/{slug}/jobs?content=true")
-        r = requests.get(base, timeout=30, headers={"User-Agent": "Mozilla/5.0"})
+        api_url = source.get("api_url", "")
+        if not api_url:
+            slug = source.get("slug", "")
+            api_url = f"https://boards-api.greenhouse.io/v1/boards/{slug}/jobs?content=true"
+        r = requests.get(api_url, timeout=30, headers={"User-Agent": "Mozilla/5.0"})
         r.raise_for_status()
         return r.json().get("jobs", [])
 
