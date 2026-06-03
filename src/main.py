@@ -1,100 +1,82 @@
 import csv
 import hashlib
 from src.storage.db import init_db, connect
-from src.monitor.fetcher import fetch
-from src.monitor.jsonld_reader import extract_jobpostings
+from src.discovery import discover
+from src.ats.router import get_ats_by_name
 from src.matching.keyword_match import match_job
 from src.notify.telegram import send
 from src.notify.sheets import append_job_row
 
-def load_companies():
-    with open("config/companies_seed.csv", encoding="utf-8") as f:
+def load_targets():
+    with open("config/company_targets.csv", encoding="utf-8") as f:
         return list(csv.DictReader(f))
 
-def make_key(company, title, url, posted_at=""):
-    raw = f"{company}|{title}|{url}|{posted_at}".encode("utf-8")
+def make_key(company, title, url):
+    raw = f"{company}|{title}|{url}".encode("utf-8")
     return hashlib.sha256(raw).hexdigest()
 
-def append_to_sheet(job, score, title_score, desc_score):
-    row = [
-        job["company_name"],
-        job["title"],
-        job["location"],
-        job["url"],
-        job.get("posted_at", ""),
-        score,
-        title_score,
-        desc_score,
-        "new"
-    ]
-    append_job_row(row)
+def save_and_notify(conn, job):
+    key = make_key(job["company_name"], job["title"], job["url"])
+    if conn.execute("SELECT 1 FROM jobs WHERE job_key=?", (key,)).fetchone():
+        return
+    conn.execute(
+        "INSERT INTO jobs (company_name, job_key, title, location, url, posted_at, description, title_score, desc_score, final_score, sheet_row_status, telegram_status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+        (job["company_name"], key, job["title"], job["location"], job["url"],
+         job["posted_at"], job["description"], job["title_score"], job["desc_score"],
+         job["final_score"], "new", "new")
+    )
+    conn.commit()
+    append_job_row([
+        job["company_name"], job["title"], job["location"], job["url"],
+        job["posted_at"], job["final_score"], job["title_score"], job["desc_score"], "new"
+    ])
+    if job["final_score"] >= 0.35:
+        send(
+            f"🚨 <b>New relevant job</b>\n"
+            f"<b>{job['company_name']}</b>\n"
+            f"{job['title']}\n"
+            f"{job['location']}\n"
+            f"{job['url']}"
+        )
+
+def process_source(conn, source):
+    ats_name = discover(source)
+    if not ats_name:
+        print(f"{source['company_name']}: ATS not detected, skipping")
+        return
+    ats = get_ats_by_name(ats_name)
+    if not ats:
+        print(f"{source['company_name']}: no module for {ats_name}, skipping")
+        return
+    try:
+        raw_jobs = ats.fetch_jobs(source)
+        print(f"{source['company_name']} ({ats_name}): {len(raw_jobs)} jobs fetched")
+        for raw in raw_jobs:
+            try:
+                j = ats.normalize_job(raw, source)
+                if not j.get("title") or not j.get("url"):
+                    continue
+                keep, title_score, desc_score = match_job(j["title"], j.get("description", ""))
+                if not keep:
+                    continue
+                final_score = round(min(1.0, title_score + desc_score), 3)
+                if final_score < 0.20:
+                    continue
+                j["title_score"] = title_score
+                j["desc_score"] = desc_score
+                j["final_score"] = final_score
+                save_and_notify(conn, j)
+            except Exception as e:
+                print(f"  Job error: {e}")
+    except Exception as e:
+        print(f"{source['company_name']} fetch error: {e}")
 
 def main():
     init_db()
-    companies = load_companies()
-
+    targets = load_targets()
     with connect() as conn:
-        for c in companies:
-            try:
-                html, final_url = fetch(c["career_url"])
-                jobs = extract_jobpostings(html)
-
-                for j in jobs:
-                    title = j.get("title", "")
-                    desc = j.get("description", "")
-                    url = j.get("url", final_url)
-                    posted_at = j.get("datePosted", "")
-                    location = ""
-
-                    if isinstance(j.get("jobLocation"), dict):
-                        location = j["jobLocation"].get("address", {}).get("addressLocality", "")
-
-                    keep, title_score, desc_score = match_job(title, desc)
-                    if not keep:
-                        continue
-
-                    final_score = round(min(1.0, title_score + desc_score), 3)
-                    if final_score < 0.20:
-                        continue
-
-                    job_key = make_key(c["company_name"], title, url, posted_at)
-                    exists = conn.execute("SELECT 1 FROM jobs WHERE job_key=?", (job_key,)).fetchone()
-                    if exists:
-                        continue
-
-                    conn.execute(
-                        "INSERT INTO jobs (company_name, job_key, title, location, url, posted_at, description, title_score, desc_score, final_score, sheet_row_status, telegram_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                        (
-                            c["company_name"], job_key, title, location, url, posted_at, desc,
-                            title_score, desc_score, final_score, "new", "new"
-                        )
-                    )
-                    conn.commit()
-
-                    append_to_sheet(
-                        {
-                            "company_name": c["company_name"],
-                            "title": title,
-                            "location": location,
-                            "url": url,
-                            "posted_at": posted_at
-                        },
-                        final_score,
-                        title_score,
-                        desc_score
-                    )
-
-                    if final_score >= 0.35:
-                        send(
-                            f"🚨 <b>New relevant job</b>\n"
-                            f"<b>{c['company_name']}</b>\n"
-                            f"{title}\n"
-                            f"{location}\n"
-                            f"{url}"
-                        )
-
-            except Exception:
-                continue
+        for source in targets:
+            process_source(conn, source)
 
 if __name__ == "__main__":
     main()
