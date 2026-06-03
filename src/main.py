@@ -4,7 +4,7 @@ from src.storage.db import init_db, connect
 from src.ats.router import get_ats_by_name
 from src.matching.keyword_match import match_job
 from src.notify.telegram import send
-from src.notify.sheets import append_job_row
+from src.notify.sheets import append_job, append_run_separator, get_existing_urls
 
 def load_targets():
     with open("config/company_targets.csv", encoding="utf-8") as f:
@@ -14,8 +14,13 @@ def make_key(company, title, url):
     raw = f"{company}|{title}|{url}".encode("utf-8")
     return hashlib.sha256(raw).hexdigest()
 
-def save_and_notify(conn, job):
-    key = make_key(job["company_name"], job["title"], job["url"])
+def save_and_notify(conn, job, seen_urls):
+    url = job["url"]
+    if url in seen_urls:
+        return
+    seen_urls.add(url)
+
+    key = make_key(job["company_name"], job["title"], url)
     if conn.execute("SELECT 1 FROM jobs WHERE job_key=?", (key,)).fetchone():
         return
     conn.execute(
@@ -25,7 +30,7 @@ def save_and_notify(conn, job):
          job["final_score"], "new", "new")
     )
     conn.commit()
-    append_job_row([
+    append_job([
         job["company_name"], job["title"], job["location"], job["url"],
         job["posted_at"], job["final_score"], job["title_score"], job["desc_score"], "new"
     ])
@@ -38,19 +43,16 @@ def save_and_notify(conn, job):
             f"{job['url']}"
         )
 
-def process_source(conn, source):
+def process_source(conn, source, seen_urls):
     ats_name = source.get("ats_type", "").strip().lower()
     api_url = source.get("api_url", "").strip()
-
     if not ats_name or not api_url:
         print(f"{source['company_name']}: missing ats_type or api_url, skipping")
         return
-
     ats = get_ats_by_name(ats_name)
     if not ats:
         print(f"{source['company_name']}: no module for {ats_name}, skipping")
         return
-
     try:
         raw_jobs = ats.fetch_jobs(source)
         print(f"{source['company_name']} ({ats_name}): {len(raw_jobs)} jobs fetched")
@@ -60,7 +62,9 @@ def process_source(conn, source):
                 j = ats.normalize_job(raw, source)
                 if not j.get("title") or not j.get("url"):
                     continue
-                keep, title_score, desc_score = match_job(j["title"], j.get("description", ""), j.get("location", ""))
+                keep, title_score, desc_score = match_job(
+                    j["title"], j.get("description", ""), j.get("location", "")
+                )
                 if not keep:
                     continue
                 final_score = round(min(1.0, title_score + desc_score), 3)
@@ -69,20 +73,24 @@ def process_source(conn, source):
                 j["title_score"] = title_score
                 j["desc_score"] = desc_score
                 j["final_score"] = final_score
-                save_and_notify(conn, j)
+                save_and_notify(conn, j, seen_urls)
                 matched += 1
             except Exception as e:
                 print(f"  Job processing error: {e}")
-        print(f"{source['company_name']}: {matched} matches saved")
+        print(f"{source['company_name']}: {matched} new matches saved")
     except Exception as e:
         print(f"{source['company_name']} fetch error: {e}")
 
 def main():
     init_db()
+    print("Fetching existing URLs from sheet for deduplication...")
+    seen_urls = get_existing_urls()
+    print(f"Found {len(seen_urls)} existing jobs in sheet")
+    append_run_separator()
     targets = load_targets()
     with connect() as conn:
         for source in targets:
-            process_source(conn, source)
+            process_source(conn, source, seen_urls)
 
 if __name__ == "__main__":
     main()
