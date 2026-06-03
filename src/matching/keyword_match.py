@@ -24,18 +24,20 @@ BLOCKED_SENIORITY = [
     "teamleiterin", "gruppenleiter", "gruppenleiterin"
 ]
 
+
 def _hits(text, keywords):
     t = normalize(text)
     return sum(1 for kw in keywords if kw.lower() in t)
+
 
 def is_relevant_location(location):
     if not location:
         return True
     loc = normalize(location)
-    # Always allow anything with "remote" in it regardless of country
     if "remote" in loc:
         return True
     return any(normalize(gl) in loc for gl in PROFILE["locations"])
+
 
 def match_job(title, description="", location=""):
     text = normalize(f"{title} {description[:1500]}")
@@ -53,11 +55,10 @@ def match_job(title, description="", location=""):
     if location and not is_relevant_location(location):
         return False, 0.0, 0.0
 
-    # Title must have at least one genuine signal word
-title_has_signal = any(s in title_lower for s in STRONG_TITLE_SIGNALS)
-    # For RSS portal jobs, descriptions are very short so we rely on title only
-    # Still require at least one signal word in title
-    if not title_has_signal and not any(t in title_lower for t in PROFILE["target_titles"]):
+    # Title must have a signal word OR match a target title directly
+    title_has_signal = any(s in title_lower for s in STRONG_TITLE_SIGNALS)
+    title_matches_target = any(normalize(t) in title_lower for t in PROFILE["target_titles"])
+    if not title_has_signal and not title_matches_target:
         return False, 0.0, 0.0
 
     title_hits = _hits(title, PROFILE["positive_keywords"] + PROFILE["target_titles"])
