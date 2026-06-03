@@ -2,6 +2,18 @@ import requests
 import xml.etree.ElementTree as ET
 from src.ats.base import ATSBase
 
+import re
+
+def find_personio_slug(career_url):
+    try:
+        r = requests.get(career_url, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
+        match = re.search(r'([a-z0-9-]+)\.jobs\.personio\.(?:de|com)', r.text, re.IGNORECASE)
+        if match:
+            return match.group(1).lower()
+    except Exception:
+        pass
+    return None
+
 class PersonioATS(ATSBase):
     name = "personio"
     public = True
